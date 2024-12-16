@@ -1,0 +1,99 @@
+server:
+  port: 8080
+
+
+discogs:
+  api:
+   base-url: https://api.discogs.com
+   token: MhVnjWMGxEpggMhWFtLJmEVhJFFRihimRHeNZTqZ
+   database-search-path: "/database/search"
+   artists-releases-path: "/artists/%s/releases"
+   artist-details-path: "/artists/%s"
+
+springdoc:
+  swagger-ui:
+    enabled: true
+
+logging:
+  level:
+    org.springdoc: DEBUG
+    org.hibernate.SQL: INFO
+
+api:
+  common:
+    version: "1.0"
+    title: "Discogs API"
+    description: "API to search and retrieve artist data from Discogs and compare results"
+    contact:
+      name: "Daniel"
+
+  responseCodes:
+    ok.description: OK
+    badRequest.description: Bad Request, invalid format of the request. See response message for more information
+    notFound.description: Not found, the specified id does not exist
+    unprocessableEntity.description: Unprocessable entity, input parameters caused the processing to fail. See response message for more information
+
+  discogsapi:
+    searchArtists:
+      description: Returns all the artists that matches the search criteria. If there is no match the response
+                   is transparent with the discogs api response, a 200 with empty body.
+      notes: |
+        # Normal response
+        If the requested artist is found the method will return information regarding:
+        1. DiscogsId of the artist in the discogs database
+        2. Name of the artist
+        
+    getAndStoreArtistDiscography:
+      description: Returns all the discography with pagination and the option of being sorted by album
+        or not. It also stores the artist and the discography in the database.
+      notes: |
+        # Normal response
+        If the requested DiscogsArtistId is found the method will return information regarding:
+        1. Title of the album
+        2. Year
+        3. Format
+        4. Label
+
+    compareArtists:
+      description: Returns both artists (if they are already saved in database) with comparison parameters.
+      notes: |
+        # Normal response
+        If the requested artists are found the method will return information regarding:
+        1. Artist name
+        2. Number of releases
+        3. Active years
+
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: update
+      show-sql: true
+  flyway:
+    enabled: true
+    repair: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    baseline-version: 1
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/discogs-db
+    username: user
+    password: pwd
+    hikari:
+      initializationFailTimeout: 60000
+
+---
+spring:
+  config:
+    activate:
+      on-profile: docker
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+server.port: 8080
+
+spring.datasource:
+  url: jdbc:mysql://mysql/discogs-db
+
+spring.jpa.hibernate.ddl-auto: update
